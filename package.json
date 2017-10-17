@@ -1,0 +1,35 @@
+{
+  "name": "discuss.eth",
+  "version": "0.0.1",
+  "description": "contracts to create discussions about anything",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test",
+    "compile": "truffle compile --reset"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/discuss-eth/discuss.eth.git"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "blockchain",
+    "discussion"
+  ],
+  "author": "Moody Salem <moody.salem@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/discuss-eth/discuss.eth/issues"
+  },
+  "homepage": "https://github.com/discuss-eth/discuss.eth#readme",
+  "devDependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
+    "truffle": "^4.0.0-beta.2"
+  }
+}
