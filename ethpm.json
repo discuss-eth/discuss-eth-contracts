@@ -1,0 +1,19 @@
+{
+  "authors": [
+    "Moody Salem <moody.salem@gmail.com>"
+  ],
+  "license": "ISC",
+  "description": "solidity forum",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "forum"
+  ],
+  "links": {},
+  "sources": [
+  ],
+  "dependencies": {},
+  "manifest_version": 1,
+  "package_name": "discuss.eth",
+  "version": "0.0.1"
+}
