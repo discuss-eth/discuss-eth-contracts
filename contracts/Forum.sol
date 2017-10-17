@@ -6,10 +6,11 @@ import "./HashesNames.sol";
 import "./ForumRegistry.sol";
 import "./User.sol";
 import "./Post.sol";
+import "./HashesNames.sol";
 
-contract Forum is Owned {
+contract Forum is Owned, HashesNames {
   event LogNewThread(address indexed sender, address indexed user, bytes32 indexed threadNameHash, address newThreadAddress);
-  event LogNewReply(address indexed post, address indexed sender, address indexed user, bytes32 threadNameHash);
+  event LogNewReply(address indexed inReplyTo, address indexed sender, address indexed user, bytes32 subjectHash, address replyAddress);
   event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
 
   // name of the forum
@@ -22,7 +23,7 @@ contract Forum is Owned {
   int public reputationThreshold;
 
   // threads are just posts stored in this array
-  Post[] public threads;
+  mapping(address => bool) public isPost;
 
   // the registry that created this forum
   address public registry;
@@ -58,10 +59,11 @@ contract Forum is Owned {
     LogSetReputationThreshold(msg.sender, oldReputationThreshold, reputationThreshold);
   }
 
-  function createThread(
+  function post(
     bytes32 userNameHash, string threadName,
     bytes32[] contentHashes, bytes32[] filenames
-  ) public {
+  ) public
+    returns (Post) {
     // get the user
     User user = getUser(userNameHash);
 
@@ -71,24 +73,32 @@ contract Forum is Owned {
       contentHashes, filenames
     );
 
-    threads.push(newPost);
+    isPost[newPost] = true;
 
-    LogNewThread(msg.sender, user, keccak256(threadName), newPost);
+    LogNewThread(msg.sender, user, hashName(threadName), newPost);
+
+    return newPost;
   }
 
-//  function replyTo(
-//    address post,
-//    bytes32 userNameHash, string _subject,
-//    bytes32[] contentHashes, bytes32[] filenames
-//  ) public
-//    returns (Post) {
-//    User user = getUser(userNameHash);
-//
-//    return new Post(
-//      forum, this,
-//      user, _subject,
-//      contentHashes, filenames
-//    );
-//  }
+  function reply(
+    Post postAddress,
+    bytes32 userNameHash, string _subject,
+    bytes32[] contentHashes, bytes32[] filenames
+  ) public
+    returns (Post) {
+    require(isPost[postAddress]);
+
+    User user = getUser(userNameHash);
+
+    Post replyPost = new Post(
+      this, postAddress,
+      user, _subject,
+      contentHashes, filenames
+    );
+
+    isPost[replyPost] = true;
+
+    LogNewReply(postAddress, msg.sender, user, hashName(_subject), replyPost);
+  }
 
 }
