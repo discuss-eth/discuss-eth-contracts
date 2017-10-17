@@ -53,7 +53,7 @@ contract Forum is Owned {
   }
 
   function setReputationThreshold(int _reputationThreshold) ownerOnly public {
-    int oldReputationThreshold = _reputationThreshold;
+    int oldReputationThreshold = reputationThreshold;
     reputationThreshold = _reputationThreshold;
     LogSetReputationThreshold(msg.sender, oldReputationThreshold, reputationThreshold);
   }

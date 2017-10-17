@@ -4,9 +4,9 @@ const Registry = artifacts.require('./Registry.sol');
 const User = artifacts.require('./User.sol');
 const Forum = artifacts.require('./Forum.sol');
 
-contract('Registry', async accounts => {
-  let registry, userAddress, forumAddress, user, forum;
-  const [ registryOwner, forumOwner, userOwner ] = accounts;
+contract('Registry, Forum', async accounts => {
+  let registry, userAddress, forumAddress, user, forum, userNameHash;
+  const [ registryOwner, forumOwner, userOwner, nobody ] = accounts;
 
   const USER_NAME = 'moodysalem';
   const FORUM_NAME = 'Moody\'s super cool forum!';
@@ -29,10 +29,11 @@ contract('Registry', async accounts => {
     const registerUserTx = await registry.registerUser(USER_NAME, { from: userOwner });
     userAddress = registerUserTx.logs.find(log => log.event === 'LogRegisterUser').args.newUserAddress;
     user = User.at(userAddress);
+    userNameHash = await hashName(USER_NAME);
   });
 
 
-  describe('registerUser', async () => {
+  describe('#registerUser', async () => {
     it('prevents two users from registering with the same name', async () => {
       const DUPE_NAME = 'amfdlksmfeopwm';
       await registry.registerUser(DUPE_NAME, { from: accounts[ 0 ] });
@@ -40,7 +41,7 @@ contract('Registry', async accounts => {
     });
   });
 
-  describe('users mapping', async () => {
+  describe('#users', async () => {
     it('can get user name', async () => {
       const hash = await hashName(USER_NAME);
       const _userAddress = await registry.users(hash);
@@ -62,14 +63,18 @@ contract('Registry', async accounts => {
     });
   });
 
-  describe('forum', async () => {
-    describe('setReputationThreshold', async () => {
-      it('cannot be called by the registry owner', async () => {
+  describe('Forum', async () => {
+    describe('#setReputationThreshold', async () => {
+      it('cannot be called by registry owner', async () => {
         promiseMe.thatYouReject(async () => await forum.setReputationThreshold(20, { from: registryOwner }));
       });
 
-      it('cannot be called by a user', async () => {
-        promiseMe.thatYouReject(async () => await forum.setReputationThreshold(20, { from: userOwner }));
+      it('cannot be called by forum owner', async () => {
+        promiseMe.thatYouReject(async () => await forum.setReputationThreshold(20, { from: forumOwner }));
+      });
+
+      it('cannot be called by nobody', async () => {
+        promiseMe.thatYouReject(async () => await forum.setReputationThreshold(20, { from: nobody }));
       });
 
       it('can be called by the forum owner', async () => {
@@ -77,8 +82,28 @@ contract('Registry', async accounts => {
         const reputationThreshold = await forum.reputationThreshold();
         assert.strictEqual(reputationThreshold.valueOf(), '20');
       });
+
+      it('fires a LogSetReputationThreshold event', async () => {
+        const { logs } = await forum.setReputationThreshold(20, { from: forumOwner });
+        assert.strictEqual(logs[ 0 ].event, 'LogSetReputationThreshold');
+        assert.strictEqual(logs[ 0 ].args.oldReputationThreshold.valueOf(), '10');
+        assert.strictEqual(logs[ 0 ].args.newReputationThreshold.valueOf(), '20');
+      });
     });
 
+    describe('#createThread', async () => {
+      it('requires a registered user', async () => {
+        promiseMe.thatYouReject(
+          async () => await forum.createThread(userNameHash, 'a great discussion', [], [], { from: nobody })
+        );
+      });
+
+      it('requires a user that meets the threshold', async () => {
+        promiseMe.thatYouReject(
+          async () => await forum.createThread(userNameHash, 'a great discussion', [], [], { from: user })
+        );
+      });
+    });
   });
 
 });
