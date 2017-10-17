@@ -4,7 +4,7 @@ import "./Forum.sol";
 import "./HashesNames.sol";
 
 contract ForumRegistry is HashesNames {
-  event LogRegisterForum(address indexed administrator, address indexed newForumAddress, string name);
+  event LogRegisterForum(address indexed administrator, address indexed newForumAddress, bytes32 hashedName, string name);
 
   // mapping of forum names to Forum contracts
   mapping(bytes32 => Forum) public forums;
@@ -14,6 +14,6 @@ contract ForumRegistry is HashesNames {
     require(forums[nameHash] == address(0));
 
     forums[nameHash] = new Forum(this, msg.sender, name, reputationThreshold);
-    LogRegisterForum(msg.sender, forums[nameHash], name);
+    LogRegisterForum(msg.sender, forums[nameHash], nameHash, name);
   }
 }

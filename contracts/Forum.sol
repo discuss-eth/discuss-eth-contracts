@@ -8,6 +8,10 @@ import "./User.sol";
 import "./Post.sol";
 
 contract Forum is Owned {
+  event LogNewThread(address indexed sender, address indexed user, bytes32 threadNameHash);
+  event LogNewReply(address indexed post, address indexed sender, address indexed user, bytes32 threadNameHash);
+  event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
+
   // name of the forum
   string public name;
 
@@ -17,7 +21,7 @@ contract Forum is Owned {
   // minimum threshold of reputation to participate
   int public reputationThreshold;
 
-  // threads are just posts not in reply to anything
+  // threads are just posts stored in this array
   Post[] public threads;
 
   // the registry that created this forum
@@ -32,9 +36,9 @@ contract Forum is Owned {
     registry = _registry;
   }
 
-  function createThread(string userName, string threadName, string content) public {
+  function getUser(bytes32 userNameHash) internal constant returns (User) {
     // get the user
-    User user = Registry(registry).getUser(userName);
+    User user = Registry(registry).users(userNameHash);
 
     // require the sender is not banned
     require(!userBans[user]);
@@ -42,13 +46,48 @@ contract Forum is Owned {
     // require that the msg sender is currently the owner of the user
     require(msg.sender == user.owner());
 
+    // require the user has enough reputation to participate in the forum
+    require(reputationThreshold <= user.reputation());
+
+    return user;
+  }
+
+  function setReputationThreshold(int _reputationThreshold) ownerOnly public {
+    int oldReputationThreshold = _reputationThreshold;
+    reputationThreshold = _reputationThreshold;
+    LogSetReputationThreshold(msg.sender, oldReputationThreshold, reputationThreshold);
+  }
+
+  function createThread(
+    bytes32 userNameHash, string threadName, bytes32[] contentHashes, bytes32[] filenames
+  ) public {
+    // get the user
+    User user = getUser(userNameHash);
+
     threads.push(
       new Post(
         this, address(0),
-        user, threadName, content
+        user, threadName,
+        contentHashes, filenames
       )
     );
 
+    LogNewThread(msg.sender, user, keccak256(threadName));
   }
+
+//  function replyTo(
+//    address post,
+//    bytes32 userNameHash, string _subject,
+//    bytes32[] contentHashes, bytes32[] filenames
+//  ) public
+//    returns (Post) {
+//    User user = getUser(userNameHash);
+//
+//    return new Post(
+//      forum, this,
+//      user, _subject,
+//      contentHashes, filenames
+//    );
+//  }
 
 }

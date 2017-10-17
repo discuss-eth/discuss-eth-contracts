@@ -1,17 +1,23 @@
 import { expectError } from './utils';
 
 const Registry = artifacts.require('./Registry.sol');
+const User = artifacts.require('./User.sol');
 
 contract('Registry', async accounts => {
-  let registry, forum, user, userAddress, forumAddress;
+  let registry, userAddress, forumAddress;
   const [ registryOwner, forumOwner, userOwner ] = accounts;
 
   const USER_NAME = 'moodysalem';
+  const FORUM_NAME = 'Moody\'s super cool forum!';
+
+  async function hashName(name) {
+    return await registry.hashName(name);
+  }
 
   beforeEach('create registry, forum and user', async () => {
     registry = await Registry.new({ from: registryOwner });
 
-    const registerForumTx = await registry.registerForum('Moody\'s super cool forum!', 10, { from: forumOwner });
+    const registerForumTx = await registry.registerForum(FORUM_NAME, 10, { from: forumOwner });
     forumAddress = registerForumTx.logs.find(log => log.event === 'LogRegisterForum').args.newForumAddress;
 
     const registerUserTx = await registry.registerUser(USER_NAME, { from: userOwner });
@@ -26,14 +32,25 @@ contract('Registry', async accounts => {
     });
   });
 
-  describe('getUser', async () => {
-    it('provides the user when it exists', async () => {
-      const _userAddress = await registry.getUser(USER_NAME);
+  describe('users mapping', async () => {
+    it('can get user name', async () => {
+      const hash = await hashName(USER_NAME);
+      const _userAddress = await registry.users(hash);
       assert.strictEqual(userAddress, _userAddress);
+
+      const name = await (User.at(_userAddress).name());
+      assert.strictEqual(name, USER_NAME);
     });
 
-    it('errors when user does not exist', async () => {
-      expectError(async () => await registry.getUser('name_does_not_exist'));
+    it('returns zero address when user does not exist', async () => {
+      expectError(async () => {
+        const hash = await hashName('name_does_not_exist');
+
+        assert.strictEqual(
+          await registry.users(hash),
+          '0x0000000000000000000000000000000000000000'
+        );
+      });
     });
   });
 

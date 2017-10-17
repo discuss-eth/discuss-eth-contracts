@@ -10,8 +10,6 @@ contract Owned {
   }
 
   function setOwner(address newOwner) public ownerOnly {
-    require(newOwner != address(0));
-
     address oldOwner = owner;
     owner = newOwner;
 

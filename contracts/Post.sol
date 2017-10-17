@@ -2,11 +2,12 @@ pragma solidity 0.4.17;
 
 import "./Forum.sol";
 import "./User.sol";
+import "./Registry.sol";
 
 contract Post {
   struct Attachment {
     bytes32 ipfsHash;
-    string name;
+    bytes32 name;
   }
 
   // the forum in which the post resides
@@ -21,8 +22,7 @@ contract Post {
 
   // the subject of the post
   string public subject;
-  // the content of the post
-  string public content;
+
   // the list of the replies
   Post[] public replies;
 
@@ -31,13 +31,24 @@ contract Post {
 
   function Post(
     Forum _forum, address _inReplyTo,
-    User _poster, string _subject, string _content
+    User _poster, string _subject,
+    bytes32[] contentHashes, bytes32[] filenames
   ) public {
+    require(contentHashes.length == filenames.length);
+
     forum = _forum;
     inReplyTo = _inReplyTo;
     poster = _poster;
     subject = _subject;
-    content = _content;
+
+    for (uint index = 0; index < contentHashes.length; index++) {
+      attachments.push(
+        Attachment({
+          ipfsHash: contentHashes[index],
+          name: filenames[index]
+        })
+      );
+    }
   }
 
 
