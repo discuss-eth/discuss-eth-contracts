@@ -5,3 +5,4 @@ create immutable discussion threads about anything
 
 1. immutable uncensored conversations that never disappear
 1. incentivizes thoughtful discussion
+1. online forum user identity is a digital asset
