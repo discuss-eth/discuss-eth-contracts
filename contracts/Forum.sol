@@ -8,7 +8,7 @@ import "./User.sol";
 import "./Post.sol";
 
 contract Forum is Owned {
-  event LogNewThread(address indexed sender, address indexed user, bytes32 threadNameHash);
+  event LogNewThread(address indexed sender, address indexed user, bytes32 indexed threadNameHash, address newThreadAddress);
   event LogNewReply(address indexed post, address indexed sender, address indexed user, bytes32 threadNameHash);
   event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
 
@@ -59,20 +59,21 @@ contract Forum is Owned {
   }
 
   function createThread(
-    bytes32 userNameHash, string threadName, bytes32[] contentHashes, bytes32[] filenames
+    bytes32 userNameHash, string threadName,
+    bytes32[] contentHashes, bytes32[] filenames
   ) public {
     // get the user
     User user = getUser(userNameHash);
 
-    threads.push(
-      new Post(
-        this, address(0),
-        user, threadName,
-        contentHashes, filenames
-      )
+    Post newPost = new Post(
+      this, address(0),
+      user, threadName,
+      contentHashes, filenames
     );
 
-    LogNewThread(msg.sender, user, keccak256(threadName));
+    threads.push(newPost);
+
+    LogNewThread(msg.sender, user, keccak256(threadName), newPost);
   }
 
 //  function replyTo(

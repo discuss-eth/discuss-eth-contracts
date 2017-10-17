@@ -1,8 +1,10 @@
 import promiseMe from 'mocha-promise-me';
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const Registry = artifacts.require('./Registry.sol');
 const User = artifacts.require('./User.sol');
 const Forum = artifacts.require('./Forum.sol');
+const Post = artifacts.require('./Post.sol');
 
 contract('Registry, Forum', async accounts => {
   let registry, userAddress, forumAddress, user, forum, userNameHash;
@@ -32,33 +34,34 @@ contract('Registry, Forum', async accounts => {
     userNameHash = await hashName(USER_NAME);
   });
 
-
-  describe('#registerUser', async () => {
-    it('prevents two users from registering with the same name', async () => {
-      const DUPE_NAME = 'amfdlksmfeopwm';
-      await registry.registerUser(DUPE_NAME, { from: accounts[ 0 ] });
-      promiseMe.thatYouReject(async () => await registry.registerUser(DUPE_NAME, { from: accounts[ 0 ] }));
-    });
-  });
-
-  describe('#users', async () => {
-    it('can get user name', async () => {
-      const hash = await hashName(USER_NAME);
-      const _userAddress = await registry.users(hash);
-      assert.strictEqual(userAddress, _userAddress);
-
-      const name = await (User.at(_userAddress).name());
-      assert.strictEqual(name, USER_NAME);
+  describe('Registry', async () => {
+    describe('#registerUser', async () => {
+      it('prevents two users from registering with the same name', async () => {
+        const DUPE_NAME = 'amfdlksmfeopwm';
+        await registry.registerUser(DUPE_NAME, { from: accounts[ 0 ] });
+        promiseMe.thatYouReject(async () => await registry.registerUser(DUPE_NAME, { from: accounts[ 0 ] }));
+      });
     });
 
-    it('returns zero address when user does not exist', async () => {
-      promiseMe.thatYouReject(async () => {
-        const hash = await hashName('name_does_not_exist');
+    describe('#users', async () => {
+      it('can get user name', async () => {
+        const hash = await hashName(USER_NAME);
+        const _userAddress = await registry.users(hash);
+        assert.strictEqual(userAddress, _userAddress);
 
-        assert.strictEqual(
-          await registry.users(hash),
-          '0x0000000000000000000000000000000000000000'
-        );
+        const name = await (User.at(_userAddress).name());
+        assert.strictEqual(name, USER_NAME);
+      });
+
+      it('returns zero address when user does not exist', async () => {
+        promiseMe.thatYouReject(async () => {
+          const hash = await hashName('name_does_not_exist');
+
+          assert.strictEqual(
+            await registry.users(hash),
+            ZERO_ADDRESS
+          );
+        });
       });
     });
   });
@@ -100,8 +103,48 @@ contract('Registry, Forum', async accounts => {
 
       it('requires a user that meets the threshold', async () => {
         promiseMe.thatYouReject(
-          async () => await forum.createThread(userNameHash, 'a great discussion', [], [], { from: user })
+          async () => await forum.createThread(userNameHash, 'a great discussion', [], [], { from: userOwner })
         );
+      });
+
+      it('allows post if i meet threshold', async () => {
+        // set threshold to 0
+        await forum.setReputationThreshold(0, { from: forumOwner });
+
+        await forum.createThread(userNameHash, 'a great discussion', [], [], { from: userOwner });
+      });
+
+      it('allows post if i exceed threshold', async () => {
+        // set threshold to 0
+        await forum.setReputationThreshold(-10, { from: forumOwner });
+
+        await forum.createThread(userNameHash, 'a great discussion', [], [], { from: userOwner });
+      });
+
+      it('fires an event', async () => {
+        await forum.setReputationThreshold(-5, { from: forumOwner });
+
+        const { logs } = await forum.createThread(userNameHash, 'a great discussion', [], [], { from: userOwner });
+        assert.strictEqual(logs[ 0 ].event, 'LogNewThread');
+        assert.strictEqual(logs[ 0 ].args.sender, userOwner);
+        assert.strictEqual(logs[ 0 ].args.user, userAddress);
+        assert.strictEqual(logs[ 0 ].args.threadNameHash, await hashName('a great discussion'));
+      });
+
+      it('adds to the threads array', async () => {
+        // set threshold to 0
+        await forum.setReputationThreshold(-10, { from: forumOwner });
+
+        await forum.createThread(userNameHash, 'a great discussion', [], [], { from: userOwner });
+
+        const newThread = await forum.threads(0);
+
+        const post = Post.at(newThread);
+        assert.strictEqual(await post.forum(), forum.address);
+        assert.strictEqual(await post.inReplyTo(), ZERO_ADDRESS);
+        assert.strictEqual(await post.poster(), userAddress);
+        assert.strictEqual(await post.subject(), 'a great discussion');
+        assert.strictEqual(await post.redacted(), false);
       });
     });
   });
