@@ -39,6 +39,9 @@ contract Forum is Owned {
     // require the sender is not banned
     require(!userBans[user]);
 
+    // require that the msg sender is currently the owner of the user
+    require(msg.sender == user.owner());
+
     threads.push(
       new Post(
         this, address(0),
