@@ -9,8 +9,7 @@ import "./Post.sol";
 import "./HashesNames.sol";
 
 contract Forum is Owned, HashesNames {
-  event LogNewThread(address indexed sender, address indexed user, bytes32 indexed threadNameHash, address newThreadAddress);
-  event LogNewReply(address indexed inReplyTo, address indexed sender, address indexed user, bytes32 subjectHash, address replyAddress);
+  event LogPost(address indexed user, bytes32 indexed threadNameHash, address indexed inReplyTo, address sender, address postAddress);
   event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
 
   // name of the forum
@@ -68,37 +67,38 @@ contract Forum is Owned, HashesNames {
     User user = getUser(userNameHash);
 
     Post newPost = new Post(
-      this, address(0),
+      this, Post(address(0)),
       user, threadName,
       contentHashes, filenames
     );
 
     isPost[newPost] = true;
 
-    LogNewThread(msg.sender, user, hashName(threadName), newPost);
+    LogPost(user, hashName(threadName), address(0), msg.sender, newPost);
 
     return newPost;
   }
 
   function reply(
-    Post postAddress,
-    bytes32 userNameHash, string _subject,
+    Post inReplyTo, bytes32 userNameHash,
+    string subject,
     bytes32[] contentHashes, bytes32[] filenames
   ) public
     returns (Post) {
-    require(isPost[postAddress]);
+    // must be a post registered with this forum
+    require(isPost[inReplyTo]);
 
     User user = getUser(userNameHash);
 
     Post replyPost = new Post(
-      this, postAddress,
-      user, _subject,
+      this, inReplyTo,
+      user, subject,
       contentHashes, filenames
     );
 
     isPost[replyPost] = true;
 
-    LogNewReply(postAddress, msg.sender, user, hashName(_subject), replyPost);
+    LogPost(user, hashName(subject), inReplyTo, msg.sender, replyPost);
   }
 
 }

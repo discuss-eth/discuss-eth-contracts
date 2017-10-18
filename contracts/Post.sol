@@ -12,8 +12,10 @@ contract Post {
 
   // the forum in which the post resides
   Forum public forum;
+
   // the post being replied to
-  address public inReplyTo;
+  Post public inReplyTo;
+
   // address of the user that made the post
   User public poster;
 
@@ -23,14 +25,11 @@ contract Post {
   // the subject of the post
   string public subject;
 
-  // the list of the replies
-  Post[] public replies;
-
   // whether the owner wishes for this comment to be visible
   bool public redacted;
 
   function Post(
-    Forum _forum, address _inReplyTo,
+    Forum _forum, Post _inReplyTo,
     User _poster, string _subject,
     bytes32[] contentHashes, bytes32[] filenames
   ) public {

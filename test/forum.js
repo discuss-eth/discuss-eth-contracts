@@ -80,7 +80,7 @@ contract('Forum', async ([ registryOwner, forumOwner, userOneOwner, nobody ]) =>
 
       it('fires an event', async () => {
         const { logs } = await forum.post(userOneNameHash, 'a great discussion', [], [], { from: userOneOwner });
-        assert.strictEqual(logs[ 0 ].event, 'LogNewThread');
+        assert.strictEqual(logs[ 0 ].event, 'LogPost');
         assert.strictEqual(logs[ 0 ].args.sender, userOneOwner);
         assert.strictEqual(logs[ 0 ].args.user, userOneAddress);
         assert.strictEqual(logs[ 0 ].args.threadNameHash, await hashName('a great discussion'));
@@ -88,7 +88,7 @@ contract('Forum', async ([ registryOwner, forumOwner, userOneOwner, nobody ]) =>
 
       it('adds to the threads array', async () => {
         const postTxObject = await forum.post(userOneNameHash, 'a great discussion', [], [], { from: userOneOwner });
-        const newPostAddress = postTxObject.logs.find(log => log.event === 'LogNewThread').args.newThreadAddress;
+        const newPostAddress = postTxObject.logs.find(log => log.event === 'LogPost').args.postAddress;
 
         const isPost = await forum.isPost(newPostAddress);
         assert.strictEqual(isPost, true);
@@ -111,19 +111,20 @@ contract('Forum', async ([ registryOwner, forumOwner, userOneOwner, nobody ]) =>
 
       it('works for post addresses', async () => {
         const postTxObject = await forum.post(userOneNameHash, 'a great discussion', [], [], { from: userOneOwner });
-        const newPostAddress = postTxObject.logs.find(log => log.event === 'LogNewThread').args.newThreadAddress;
+        const newPostAddress = postTxObject.logs.find(log => log.event === 'LogPost').args.postAddress;
 
         const isPost = await forum.isPost(newPostAddress);
         assert.strictEqual(isPost, true);
 
         // now reply to yourself
         const replyTxObject = await forum.reply(newPostAddress, userOneNameHash, 'i disagree', [], [], { from: userOneOwner });
-        const log = replyTxObject.logs.find(log=>log.event==='LogNewReply');
+        const log = replyTxObject.logs.find(log => log.event === 'LogPost');
 
         assert.strictEqual(log.args.inReplyTo, newPostAddress);
         assert.strictEqual(log.args.sender, userOneOwner);
+        assert.strictEqual(log.args.user, userOneAddress);
 
-        const isReplyPost = await forum.isPost(log.args.replyAddress);
+        const isReplyPost = await forum.isPost(log.args.postAddress);
         assert.strictEqual(isReplyPost, true);
       });
     });
