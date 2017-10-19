@@ -2,30 +2,51 @@ pragma solidity 0.4.17;
 
 import "./Registry.sol";
 import "./Owned.sol";
-import "./HashesNames.sol";
-import "./ForumRegistry.sol";
-import "./User.sol";
-import "./Post.sol";
-import "./HashesNames.sol";
 
-contract Forum is Owned, HashesNames {
-  event LogPost(address indexed user, bytes32 indexed threadNameHash, address indexed inReplyTo, address sender, address postAddress);
+contract Forum is Owned {
+  uint nextPostId = 1;
+
+  struct Post {
+    // the id of the new post
+    uint id;
+
+    // the key of the thread
+    bytes32 threadKey;
+
+    // the post being replied to
+    uint inReplyTo;
+
+    // the subject of the post
+    string subject;
+
+    // the hash of the body of the post
+    bytes32 bodyHash;
+
+    // the hash of the user name that made the post
+    bytes32 userNameHash;
+
+    // additional content hashes and filenames
+    bytes32[] contentHashes;
+    bytes32[] contentFilenames;
+  }
+
+  event LogPost(bytes32 indexed userNameHash, bytes32 indexed threadKey, uint inReplyTo, address sender, uint newPostId);
   event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
 
   // name of the forum
   string public name;
 
   // mapping of banned users
-  mapping(address => bool) public userBans;
+  mapping(bytes32 => bool) public userBans;
 
-  // minimum threshold of reputation to participate
+  // minimum threshold of reputation to participate in this forum
   int public reputationThreshold;
-
-  // threads are just posts stored in this array
-  mapping(address => bool) public isPost;
 
   // the registry that created this forum
   address public registry;
+
+  // the posts in this forum
+  mapping(uint => Post) posts;
 
   function Forum(
     address _registry, address _owner,
@@ -36,69 +57,57 @@ contract Forum is Owned, HashesNames {
     registry = _registry;
   }
 
-  function getUser(bytes32 userNameHash) internal constant returns (User) {
-    // get the user
-    User user = Registry(registry).users(userNameHash);
-
-    // require the sender is not banned
-    require(!userBans[user]);
-
-    // require that the msg sender is currently the owner of the user
-    require(msg.sender == user.owner());
-
-    // require the user has enough reputation to participate in the forum
-    require(reputationThreshold <= user.reputation());
-
-    return user;
-  }
-
   function setReputationThreshold(int _reputationThreshold) ownerOnly public {
     int oldReputationThreshold = reputationThreshold;
+
     reputationThreshold = _reputationThreshold;
+
     LogSetReputationThreshold(msg.sender, oldReputationThreshold, reputationThreshold);
   }
 
   function post(
-    bytes32 userNameHash, string threadName,
-    bytes32[] contentHashes, bytes32[] filenames
+    uint inReplyTo, bytes32 userNameHash,
+    string subject, bytes32 bodyHash,
+    bytes32[] contentHashes, bytes32[] contentFilenames
   ) public
-    returns (Post) {
-    // get the user
-    User user = getUser(userNameHash);
+    returns (uint) {
+    // user requirements
+    var (owner,, reputation) = Registry(registry).getUser(userNameHash);
+    // require the user has enough reputation to participate in the forum
+    require(reputationThreshold <= reputation);
 
-    Post newPost = new Post(
-      this, Post(address(0)),
-      user, threadName,
-      contentHashes, filenames
-    );
+    // msg sender is the owner
+    require(msg.sender == owner);
 
-    isPost[newPost] = true;
+    // user is not banned
+    require(!userBans[userNameHash]);
 
-    LogPost(user, hashName(threadName), address(0), msg.sender, newPost);
+    // not in reply to anything, or the id it's in reply to exists
+    require(inReplyTo == 0 || posts[inReplyTo].id != 0);
 
-    return newPost;
-  }
+    // require that there is a filename for every hash (and vice versa)
+    require(contentHashes.length == contentFilenames.length);
 
-  function reply(
-    Post inReplyTo, bytes32 userNameHash,
-    string subject,
-    bytes32[] contentHashes, bytes32[] filenames
-  ) public
-    returns (Post) {
-    // must be a post registered with this forum
-    require(isPost[inReplyTo]);
+    // generate the post ID
+    uint newPostId = nextPostId++;
 
-    User user = getUser(userNameHash);
+    // get the thread key
+    bytes32 threadKey = inReplyTo == 0 ? keccak256(subject) : posts[inReplyTo].threadKey;
 
-    Post replyPost = new Post(
-      this, inReplyTo,
-      user, subject,
-      contentHashes, filenames
-    );
+    posts[newPostId] = Post({
+      id: newPostId,
+      threadKey: threadKey,
+      inReplyTo: inReplyTo,
+      subject: subject,
+      bodyHash: bodyHash,
+      userNameHash: userNameHash,
+      contentHashes: contentHashes,
+      contentFilenames: contentFilenames
+    });
 
-    isPost[replyPost] = true;
+    LogPost(userNameHash, threadKey, inReplyTo, msg.sender, newPostId);
 
-    LogPost(user, hashName(subject), inReplyTo, msg.sender, replyPost);
+    return newPostId;
   }
 
 }

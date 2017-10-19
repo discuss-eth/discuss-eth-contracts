@@ -6,7 +6,7 @@ import "./HashesNames.sol";
 contract ForumRegistry is HashesNames {
   event LogRegisterForum(address indexed administrator, address indexed newForumAddress, bytes32 hashedName, string name);
 
-  // mapping of forum names to Forum contracts
+  // mapping of forum name hashes to Forum contracts
   mapping(bytes32 => Forum) public forums;
 
   function registerForum(string name, int reputationThreshold) public {

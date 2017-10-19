@@ -8,7 +8,9 @@
   },
   "scripts": {
     "postinstall": "truffle install",
+    "pretest": "truffle compile",
     "test": "truffle test",
+    "test:watch": "watch \"npm test\" test/ contracts/",
     "compile": "truffle compile --reset"
   },
   "repository": {
@@ -32,6 +34,7 @@
     "babel-preset-env": "^1.6.0",
     "babel-register": "^6.26.0",
     "mocha-promise-me": "^1.0.3",
-    "truffle": "^4.0.0-beta.2"
+    "truffle": "^4.0.0-beta.2",
+    "watch": "^1.0.2"
   }
 }
