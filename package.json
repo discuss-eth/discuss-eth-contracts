@@ -10,7 +10,7 @@
     "postinstall": "truffle install",
     "pretest": "truffle compile",
     "test": "truffle test",
-    "test:watch": "watch \"npm test\" test/ contracts/",
+    "test:watch": "watch \"reset && npm test\" test/ contracts/",
     "compile": "truffle compile --reset"
   },
   "repository": {
