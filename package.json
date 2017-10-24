@@ -11,7 +11,11 @@
     "pretest": "truffle compile",
     "test": "truffle test",
     "test:watch": "watch \"reset && npm test\" test/ contracts/",
-    "compile": "truffle compile --reset"
+    "compile": "truffle compile --reset",
+    "migrate:kovan": "truffle migrate --network kovan",
+    "migrate:rinkeby": "truffle migrate --network rinkeby",
+    "migrate:ropsten": "truffle migrate --network ropsten",
+    "migrate:mainnet": "truffle migrate --network mainnet"
   },
   "repository": {
     "type": "git",
@@ -35,6 +39,8 @@
     "babel-register": "^6.26.0",
     "mocha-promise-me": "^1.0.3",
     "truffle": "^4.0.0-beta.2",
+    "truffle-hdwallet-provider": "0.0.3",
+    "underscore": "^1.8.3",
     "watch": "^1.0.2"
   }
 }
