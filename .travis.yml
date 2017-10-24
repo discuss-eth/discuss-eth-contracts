@@ -14,6 +14,7 @@ deploy:
       tags: true
       repo: discuss-eth/discuss.eth
   - provider: npm
+    skip_cleanup: true
     email: moody.salem@gmail.com
     api_key:
       secure: AO4aeDdToGz+ZhJOdJGrTxJrOStvtlBM8OudTX7ku6bgOXbxNp1ZNE3CezHbbaDOA0ZAKlZR5ZLCZN5ztcUqNo/D6yxZOb02/kalfWJvXJ5qMg7LEv4VaDNBj+KjwylUgvwyPOGOe06Swf5GBQSQS51xmGXzPP8OjYPyA9qndJHr9ej7Dd0d0xxdsw1/uFobNqOWqho1dPxbGB2RBOvb9jvWmtXDovzNMre1s+DRTlcTyIzv8wFajUEkJN0Ca79FZGC2rX/6Bmb05WRU57jnAu+QYgCTa1c4ls5XoN6omnl66hVigBI9rR9LpkjFIXfFjILKr0M4XIQhjrNS3LaDcVR4cp1no0xMOYfH/IZm47P8WCpjezEGxImVfMfnSD5sAzV/TlMc5jTMg3TZtCUypEvuoVmsIKoWUvUSyNhGNnr0pK/3zzdTD4LEYHhbRgTnneI/Y7x7dscb2OT9oL0TIz33xMh8TjLhLuFYDigqNfNRgCLlO4VGyLy7aqg2dVkHYVG1cOGR4zY4urhXtUeOOLX/A13wPROCoGhiuONMwErKni4B7rOkTLFCnPsKJmnCI7hu4mBgCVaqkvtafOeeUNvz5BP/kkwmrpfNqTIT/nmOzdOjDSjSVJCTTBsyZP4vJd5l3DvbTYhUs6n8YQxG+AYMrQQpGHICb/teUWmPd9g=
