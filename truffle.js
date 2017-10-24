@@ -1,8 +1,5 @@
-require('babel-register');
-require('babel-polyfill');
-
-const _ = require('underscore');
-const { INFURA_API_KEY, MNEMONIC } = process.env;
+const INFURA_API_KEY = process.env.INFURA_API_KEY;
+const MNEMONIC = process.env.MNEMONIC;
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
 const NETWORK_IDS = {
@@ -13,11 +10,12 @@ const NETWORK_IDS = {
 };
 
 module.exports = {
-  networks: _.mapObject(
-    NETWORK_IDS,
-    (network_id, name) => ({
-      provider: new HDWalletProvider(MNEMONIC, 'https://' + name + '.infura.io/' + INFURA_API_KEY),
-      network_id
-    })
-  )
+  networks: {}
 };
+
+for (let networkName in NETWORK_IDS) {
+  module.exports.networks[ networkName ] = {
+    provider: new HDWalletProvider(MNEMONIC, 'https://' + networkName + '.infura.io/' + INFURA_API_KEY),
+    network_id: NETWORK_IDS[ networkName ]
+  };
+}
