@@ -1,3 +1,6 @@
+require('babel-register');
+require('babel-polyfill');
+
 const INFURA_API_KEY = process.env.INFURA_API_KEY;
 const MNEMONIC = process.env.MNEMONIC;
 const HDWalletProvider = require('truffle-hdwallet-provider');
