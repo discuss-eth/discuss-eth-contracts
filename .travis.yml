@@ -5,3 +5,8 @@ node_js:
 cache:
   directories:
     - node_modules
+deploy:
+  provider: script
+  script: npm run migrate:kovan
+  on:
+    tags: true
