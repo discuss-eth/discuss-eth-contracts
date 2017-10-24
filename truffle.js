@@ -17,8 +17,10 @@ module.exports = {
 };
 
 for (let networkName in NETWORK_IDS) {
-  module.exports.networks[ networkName ] = {
+  module.exports.networks[networkName] = {
     provider: new HDWalletProvider(MNEMONIC, 'https://' + networkName + '.infura.io/' + INFURA_API_KEY),
-    network_id: NETWORK_IDS[ networkName ]
+    network_id: NETWORK_IDS[networkName],
+    // use 1 gwei for the gas price instead of 100 gwei
+    gasPrice: Math.pow(10, 9)
   };
 }

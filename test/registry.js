@@ -2,7 +2,7 @@ import promiseMe from 'mocha-promise-me';
 import { ZERO_ADDRESS, Registry, Forum } from './util/constants';
 
 contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) => {
-  let registry, userAddress, forumAddress, forum, userOneNameHash;
+  let registry, forumAddress, forum, userOneNameHash;
 
   const USER_NAME = 'moodysalem';
   const FORUM_NAME = 'Moody\'s super cool forum!';
