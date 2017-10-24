@@ -7,7 +7,6 @@
     "test": "test"
   },
   "scripts": {
-    "postinstall": "truffle install",
     "pretest": "truffle compile",
     "test": "truffle test",
     "test:watch": "watch \"reset && npm test\" test/ contracts/",
