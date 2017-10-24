@@ -1,6 +1,6 @@
 {
   "name": "discuss.eth",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "contracts to create discussions about anything",
   "main": "truffle.js",
   "directories": {
