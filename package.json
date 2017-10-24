@@ -27,6 +27,9 @@
     "blockchain",
     "discussion"
   ],
+  "files": [
+    "build/"
+  ],
   "author": "Moody Salem <moody.salem@gmail.com>",
   "license": "ISC",
   "bugs": {
