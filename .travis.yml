@@ -9,3 +9,6 @@ deploy:
   script: npm run migrate:kovan
   on:
     tags: true
+    branches:
+      only:
+        - master
