@@ -7,9 +7,7 @@ cache:
 deploy:
   - provider: script
     skip_cleanup: true
-    script:
-      - npm run migrate:kovan
-      - npm run migrate:ropsten
+    script: deploy.sh
     on:
       all_branches: true
       tags: true
