@@ -11,7 +11,7 @@ deploy:
     on:
       all_branches: true
       tags: true
-      repo: discuss-eth/discuss.eth
+      repo: discuss-eth/contracts
   - provider: npm
     skip_cleanup: true
     email: moody.salem@gmail.com
@@ -19,6 +19,6 @@ deploy:
     on:
       all_branches: true
       tags: true
-      repo: discuss-eth/discuss.eth
+      repo: discuss-eth/contracts
 notifications:
   email: true

@@ -14,6 +14,6 @@
   ],
   "dependencies": {},
   "manifest_version": 1,
-  "package_name": "discuss.eth",
+  "package_name": "discuss-eth-contracts",
   "version": "0.0.1"
 }
