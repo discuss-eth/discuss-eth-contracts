@@ -1,5 +1,5 @@
 # discuss-eth-contracts 
-[![Build Status](https://travis-ci.org/discuss-eth/discuss.eth.svg?branch=master)](https://travis-ci.org/discuss-eth/discuss.eth)
+[![Build Status](https://travis-ci.org/discuss-eth/discuss.eth.svg?branch=master)](https://travis-ci.org/discuss-eth/discuss-eth-contracts)
 [![npm](https://img.shields.io/npm/v/discuss-eth-contracts.svg?style=flat-square)](https://www.npmjs.com/package/discuss-eth-contracts)
 
 Create discussion threads on the blockchain.
