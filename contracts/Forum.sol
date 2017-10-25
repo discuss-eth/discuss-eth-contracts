@@ -4,7 +4,7 @@ import "./Registry.sol";
 import "./Owned.sol";
 
 contract Forum is Owned {
-  uint nextPostId = 1;
+  uint public nextPostId = 1;
 
   struct Post {
     // the id of the new post

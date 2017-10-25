@@ -18,7 +18,7 @@ contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) =>
     forumAddress = registerForumTx.logs.find(log => log.event === 'LogRegisterForum').args.newForumAddress;
     forum = Forum.at(forumAddress);
 
-    const registerUserTx = await registry.registerUser(USER_NAME, 0, { from: userOwner });
+    await registry.registerUser(USER_NAME, 0, { from: userOwner });
     userOneNameHash = await hashName(USER_NAME);
   });
 
@@ -27,6 +27,29 @@ contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) =>
       const DUPE_NAME = 'amfdlksmfeopwm';
       await registry.registerUser(DUPE_NAME, 0, { from: nobody });
       promiseMe.thatYouReject(registry.registerUser(DUPE_NAME, 0, { from: nobody }));
+    });
+  });
+
+  describe('#registerForum', async () => {
+    it('prevents two forums from being registered with the same name', async () => {
+      const DUPE_NAME = 'my cool forum';
+      await registry.registerForum(DUPE_NAME, 0, { from: nobody });
+      promiseMe.thatYouReject(registry.registerForum(DUPE_NAME, 0, { from: nobody }));
+    });
+
+    it('emits an event', async () => {
+      const FORUM_NAME = 'unique forum name';
+      const registrationTx = await registry.registerForum(FORUM_NAME, 0, { from: nobody });
+      //event LogRegisterForum(address indexed administrator, address indexed newForumAddress, bytes32 hashedName, string name);
+      assert.strictEqual(registrationTx.logs[ 0 ].event, 'LogRegisterForum');
+      assert.strictEqual(registrationTx.logs[ 0 ].args.administrator, nobody);
+      const hashedName = await hashName(FORUM_NAME);
+      assert.strictEqual(registrationTx.logs[ 0 ].args.hashedName, hashedName);
+      assert.strictEqual(registrationTx.logs[ 0 ].args.name, FORUM_NAME);
+
+      const newForum = Forum.at(registrationTx.logs[ 0 ].args.newForumAddress);
+      const nextPostId = await newForum.nextPostId();
+      assert.strictEqual(nextPostId.valueOf(), '1');
     });
   });
 
