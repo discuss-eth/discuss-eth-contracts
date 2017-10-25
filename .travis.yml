@@ -7,7 +7,7 @@ cache:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: deploy.sh
+    script: ./deploy.sh
     on:
       all_branches: true
       tags: true
