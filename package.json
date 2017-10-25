@@ -1,6 +1,6 @@
 {
   "name": "discuss-eth-contracts",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "contracts to create decentralized discussions",
   "main": "truffle.js",
   "directories": {
