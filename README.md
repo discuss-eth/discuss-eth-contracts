@@ -1,4 +1,7 @@
-# discuss.eth [![Build Status](https://travis-ci.org/discuss-eth/discuss.eth.svg?branch=master)](https://travis-ci.org/discuss-eth/discuss.eth)
+# discuss-eth-contracts 
+[![Build Status](https://travis-ci.org/discuss-eth/discuss.eth.svg?branch=master)](https://travis-ci.org/discuss-eth/discuss.eth)
+
+
 create immutable discussion threads about anything
 
 ## why
