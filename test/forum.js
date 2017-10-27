@@ -1,5 +1,5 @@
 import promiseMe from 'mocha-promise-me';
-import { Registry, Forum } from './util/constants';
+import { Forum, Registry } from './util/constants';
 
 const POST_SUBJECT = 'a great discussion';
 
@@ -99,6 +99,16 @@ contract('Forum', async ([ registryOwner, forumOwner, userOneOwner, nobody ]) =>
       assert.strictEqual(logs[ 0 ].event, 'LogPost');
       assert.strictEqual(logs[ 0 ].args.sender, userOneOwner);
       assert.strictEqual(logs[ 0 ].args.threadKey, subjectHash);
+    });
+  });
+
+  describe('#castVote', async () => {
+    it('allows a user to cast a vote', async () => {
+      const postTx = await forum.post(0, userOneNameHash, POST_SUBJECT, exampleContentHash, [], [], { from: userOneOwner });
+
+      const postId = postTx.logs[ 0 ].args.newPostId;
+      const voteTx = await forum.castVote(postId, userOneNameHash, 1, { from: userOneOwner });
+      assert.strictEqual(voteTx.logs[ 0 ].event, 'LogVote');
     });
   });
 

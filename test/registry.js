@@ -1,5 +1,5 @@
 import promiseMe from 'mocha-promise-me';
-import { ZERO_ADDRESS, Registry, Forum } from './util/constants';
+import { Forum, Registry, ZERO_ADDRESS } from './util/constants';
 
 contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) => {
   let registry, forumAddress, forum, userOneNameHash;
@@ -38,6 +38,9 @@ contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) =>
     });
 
     it('emits an event', async () => {
+      const isForum = await registry.isForum(ZERO_ADDRESS);
+      assert.strictEqual(isForum, false);
+
       const FORUM_NAME = 'unique forum name';
       const registrationTx = await registry.registerForum(FORUM_NAME, 0, { from: nobody });
       //event LogRegisterForum(address indexed administrator, address indexed newForumAddress, bytes32 hashedName, string name);
@@ -47,9 +50,23 @@ contract('Registry', async ([ registryOwner, forumOwner, userOwner, nobody ]) =>
       assert.strictEqual(registrationTx.logs[ 0 ].args.hashedName, hashedName);
       assert.strictEqual(registrationTx.logs[ 0 ].args.name, FORUM_NAME);
 
+      const isNewForumAForum = await registry.isForum(registrationTx.logs[ 0 ].args.newForumAddress);
+      assert.strictEqual(isNewForumAForum, true);
+
       const newForum = Forum.at(registrationTx.logs[ 0 ].args.newForumAddress);
       const nextPostId = await newForum.nextPostId();
       assert.strictEqual(nextPostId.valueOf(), '1');
+    });
+  });
+
+
+  describe('#incrementReputation', () => {
+    it('fails when called by users', async () => {
+      const hashedName = await hashName(USER_NAME);
+      promiseMe.thatYouReject(registry.incrementReputation(hashedName, 1, { from: nobody }));
+      promiseMe.thatYouReject(registry.incrementReputation(hashedName, 1, { from: userOwner }));
+      promiseMe.thatYouReject(registry.incrementReputation(hashedName, 1, { from: forumOwner }));
+      promiseMe.thatYouReject(registry.incrementReputation(hashedName, 1, { from: registryOwner }));
     });
   });
 

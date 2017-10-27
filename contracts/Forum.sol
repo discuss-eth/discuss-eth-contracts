@@ -28,9 +28,14 @@ contract Forum is Owned {
     // additional content hashes and filenames
     bytes32[] contentHashes;
     bytes32[] contentFilenames;
+
+    int votes;
+
+    mapping(bytes32 => int) userVotes;
   }
 
   event LogPost(bytes32 indexed userNameHash, bytes32 indexed threadKey, uint inReplyTo, address sender, uint newPostId);
+  event LogVote(uint indexed postId, bytes32 indexed userNameHash, int indexed vote);
   event LogSetReputationThreshold(address indexed actor, int oldReputationThreshold, int newReputationThreshold);
 
   // name of the forum
@@ -63,6 +68,37 @@ contract Forum is Owned {
     reputationThreshold = _reputationThreshold;
 
     LogSetReputationThreshold(msg.sender, oldReputationThreshold, reputationThreshold);
+  }
+
+  function castVote(uint postId, bytes32 userNameHash, int vote) public returns (int) {
+    require(posts[postId].id > 0);
+    require(vote == 1 || vote == 0 || vote == -1);
+    int oldVote = posts[postId].userVotes[userNameHash];
+    require(oldVote != vote);
+
+    var (owner,, reputation) = Registry(registry).getUser(userNameHash);
+
+    // require the user has enough reputation to participate in the forum
+    require(reputation >= reputationThreshold);
+
+    // msg sender is the owner
+    require(msg.sender == owner);
+
+    // user is not banned
+    require(!userBans[userNameHash]);
+
+    int difference = vote - oldVote;
+
+    // record the vote
+    posts[postId].userVotes[userNameHash] = vote;
+    posts[postId].votes += difference;
+
+    // increment the reputation
+    Registry(registry).incrementReputation(posts[postId].userNameHash, difference);
+
+    LogVote(postId, userNameHash, vote);
+
+    return posts[postId].votes;
   }
 
   function post(
@@ -102,7 +138,8 @@ contract Forum is Owned {
       bodyHash: bodyHash,
       userNameHash: userNameHash,
       contentHashes: contentHashes,
-      contentFilenames: contentFilenames
+      contentFilenames: contentFilenames,
+      votes: 1
     });
 
     LogPost(userNameHash, threadKey, inReplyTo, msg.sender, newPostId);
